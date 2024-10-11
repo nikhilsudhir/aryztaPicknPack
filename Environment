@@ -1,0 +1,57 @@
+function environment()
+ %% Load Images
+    groundImage = imread('concrete.jpg');
+    wallImage1 = imread('MetalWall.jpg'); 
+    wallImage2 = imread('MetalWall.jpg'); 
+    
+% Load sign images
+    safetySign = imread('Saftey.jpg'); 
+    robotOperationSign = imread('RobotOperation.jpg');
+    emergencyStopSign = imread('EmergencyStop.jpg');
+    cautionRoboticSign = imread('CautionRobotic.jpg');
+
+    %% Load the table model
+    [tableFaceData, tableVertexData, ~] = plyread('browntable.ply', 'tri');
+
+    % Load the brick model
+    [brickFaceData, brickVertexData, ~] = plyread('brick.ply', 'tri');
+
+    % Load the fire extinguisher model
+    [fireExtinguisherFaceData, fireExtinguisherVertexData, ~] = plyread('fireExtinguisher.ply', 'tri');
+
+    % Load the person model
+    [personFaceData, personVertexData, ~] = plyread('Person.ply', 'tri');
+
+    % Load the emergency stop button model
+    [emergencyStopFaceData, emergencyStopVertexData, ~] = plyread('emergencyStopButton.ply', 'tri');
+
+    % Create the figure window
+    figure;
+    hold on;
+    %% Sets axis properties
+    % Set axis properties
+    axis equal;
+    xlabel('X');
+    ylabel('Y');
+    zlabel('Z');
+    view(3);
+    
+
+ %% Create the ground plane
+    [xGround, yGround] = meshgrid(-2:0.1:2, -2:0.1:2); 
+    zGround = zeros(size(xGround));
+
+    %% Create the first wall plane along the y-axis
+    [xWall1, zWall1] = meshgrid(-2:0.1:2, 0:0.1:2);
+    yWall1 = 2 * ones(size(xWall1));
+
+    %% Create the second wall plane along the x-axis
+    [yWall2, zWall2] = meshgrid(-2:0.1:2, 0:0.1:2);
+    xWall2 = 2 * ones(size(yWall2));
+
+    % Plot the ground and apply the image as a texture
+    surf(xGround, yGround, zGround, 'CData', groundImage, 'FaceColor', 'texturemap', 'EdgeColor', 'none');
+
+    % Plot the first and second walls without gridlines but keeping visibility
+    surf(xWall1, yWall1, zWall1, 'CData', wallImage1, 'FaceColor', 'texturemap', 'EdgeColor', 'none', 'FaceLighting', 'gouraud');
+    surf(xWall2, yWall2, zWall2, 'CData', wallImage2, 'FaceColor', 'texturemap', 'EdgeColor', 'none', 'FaceLighting', 'gouraud');
