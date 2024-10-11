@@ -55,3 +55,4 @@ function environment()
     % Plot the first and second walls without gridlines but keeping visibility
     surf(xWall1, yWall1, zWall1, 'CData', wallImage1, 'FaceColor', 'texturemap', 'EdgeColor', 'none', 'FaceLighting', 'gouraud');
     surf(xWall2, yWall2, zWall2, 'CData', wallImage2, 'FaceColor', 'texturemap', 'EdgeColor', 'none', 'FaceLighting', 'gouraud');
+end
