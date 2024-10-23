@@ -75,7 +75,7 @@ function PlotEnvironment()
     placeAndTransformObject('emergencyStopButton.ply', [2.5, 3, 0.8], [0.5, 0.5, 0.5], 0);
 
     % Plot the boxes conveyor
-    placeAndTransformObject('ConveyerBeltBoxes.ply', [1, 1, 0], [1, 1, 1], -90);
+    placeAndTransformObject('ConveyerBeltBoxes.ply', [1, 1.5, 0], [1, 1, 1], -90);
 
     % Plot the pancake conveyor
     placeAndTransformObject('ConveyerBeltPancake.ply', [-3, 3, 0], [1, 1, 1], -90);
@@ -85,27 +85,25 @@ function PlotEnvironment()
     placeAndTransformObject('PlasticStripDoor.ply', [2.2, 1.8, 0.01], [0.01, 0.01, 0.01], 270, [0.5, 0.5, 0.5]); %Wall with Door
 
     % Plot the box closer
-    placeAndTransformObject('AutoBoxCloser.ply', [-2, -1.025, 0.6], [1, 1, 1], 90, [0.6, 0.6, 0.6]);
+    placeAndTransformObject('AutoBoxCloser.ply', [-2, -0.525, 0.6], [1, 1, 1], 90, [0.6, 0.6, 0.6]);
+
+    placeAndTransformObject('Pancake.ply', [0, -0.525, 0.6], [1, 1, 1], 90, [0.6, 0.6, 0.6]);
 
 
     %% Define sign positions and sizes
     signWidth = 0.8;  
-    signHeight = 0.8; 
-    signPosX = [-4.5, -3, -1.5, 3];
+    signHeight = 0.8;  
     signLift = 0.8;  % Amount to lift the signs above the ground
-    signImages = {safetySign, robotOperationSign, cautionRoboticSign, emergencyStopSign};
-
-    % Plot signs
-    for i = 1:length(signPosX)
-        [xSign, zSign] = meshgrid(signPosX(i) + [-signWidth/2, signWidth/2], signLift:0.1:(signLift + signHeight));
-        ySign = ones(size(xSign)) * 4; 
-        
-        % Flip the zSign values to rotate the image
-        zSign = flip(zSign);
-        
-        plotSurfaceWithTexture(xSign, ySign, zSign, signImages{i});
-    end
-
+    
+    % Define 4 corners for the sign
+    
+    corner1 = [-4.5, 4, signLift + signHeight];       % Top-left corner
+    corner2 = [-4.5 + signWidth, 4, signLift + signHeight];  % Top-right corner
+    corner3 = [-4.5, 4, signLift];                    % Bottom-left corner
+    corner4 = [-4.5 + signWidth, 4, signLift];        % Bottom-right corner
+    
+    % Plot the sign with the texture
+    plotImageOnSurface(corner1, corner2, corner3, corner4, 'Saftey.jpg');
 
     hold off;
 end
