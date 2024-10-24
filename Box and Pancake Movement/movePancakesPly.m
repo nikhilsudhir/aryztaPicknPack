@@ -1,7 +1,7 @@
 function movePancakesPly(robot)
 
     % Number of pancakes
-    numPancakes = 1;
+    numPancakes = 8;
 
     % Initialize x positions for each pancake (starting off-screen to the left)
     xPositions = linspace(-15, -10, numPancakes); % Initial x positions
@@ -33,13 +33,17 @@ function movePancakesPly(robot)
 
     % Movement parameters
     xMove = 0.01;
-    stopPosition = -6; % Target position
+    stopPosition = -6; % Target position for picking up
     frameRate = 30;
     timePerFrame = 1 / frameRate;
-    isCarrying = false; % Flag to indicate if the pancake is being carried
 
     % Define the timer object
     moveTimer = timer('ExecutionMode', 'fixedRate', 'Period', timePerFrame, 'TimerFcn', @movePancakes);
+
+    % Count of picked pancakes
+    pickedCount = 0;
+    isCarrying = false; % Flag to indicate if the robot is carrying a pancake
+    currentPancake = 1; % Track the current pancake being processed
 
     % Start the timer
     start(moveTimer);
@@ -47,19 +51,17 @@ function movePancakesPly(robot)
     function movePancakes(~, ~)
         % Move pancakes
         for i = 1:numPancakes
-            if ~isCarrying
-                % Move the pancake along the conveyor
+            % Move the pancake along the conveyor if it has not been picked up
+            if ~isCarrying && ishandle(h(i))
                 if xPositions(i) < stopPosition
                     xPositions(i) = min(xPositions(i) + xMove, stopPosition);
+                    newVertices = rotatedVertices + [xPositions(i), y, z];
+                    set(h(i), 'Vertices', newVertices);
                 end
-
-                % Update the vertices of the pancake
-                newVertices = rotatedVertices + [xPositions(i), y, z];
-                set(h(i), 'Vertices', newVertices);
             end
 
-            % Check for pickup
-            if xPositions(i) >= stopPosition && ishandle(h(i)) && ~isCarrying
+            % Check for pickup if the robot is not currently carrying a pancake
+            if ~isCarrying && xPositions(i) >= stopPosition && ishandle(h(i))
                 % Move robot end effector to pancake position
                 targetPos = [xPositions(i), y, z + 0.2]; % Adjust z for pickup
                 qTraj = generateTrajectory(robot, targetPos, robot.model.getpos()); % Generate trajectory
@@ -72,10 +74,11 @@ function movePancakesPly(robot)
 
                 % Mark that the robot is now carrying the pancake
                 isCarrying = true;
+                currentPancake = i; % Keep track of the pancake being picked
             end
 
-            % If the robot is carrying the pancake, update its position to follow the end effector
-            if isCarrying && ishandle(h(i))
+            % If the robot is carrying a pancake, move to the drop-off location
+            if isCarrying && ishandle(h(currentPancake))
                 % Get the current pose of the end effector
                 qNow = robot.model.getpos();
                 endEffectorPose = robot.model.fkineUTS(qNow);
@@ -83,34 +86,42 @@ function movePancakesPly(robot)
 
                 % Update the vertices of the pancake relative to the end effector
                 newVertices = rotatedVertices + pancakePosition;
-                set(h(i), 'Vertices', newVertices);
+                set(h(currentPancake), 'Vertices', newVertices);
 
                 % Move the robot to the drop-off location
-                dropOffPos = [-6, -0.1, 0.7]; % Define drop-off position
+                dropOffPos = [-6, -0.02, 1]; % Define drop-off position
                 qTraj = generateTrajectory(robot, dropOffPos, robot.model.getpos()); % Generate trajectory to drop-off position
 
                 % Animate the robot moving to the drop-off position
                 for q = qTraj'
                     robot.model.animate(q');
+                    % Update the end effector position
                     endEffectorPose = robot.model.fkineUTS(q'); % Update the end effector pose
                     pancakePosition = endEffectorPose(1:3, 4)'; % Extract translation from pose
                     newVertices = rotatedVertices + pancakePosition;
-                    set(h(i), 'Vertices', newVertices);
+                    set(h(currentPancake), 'Vertices', newVertices);
                     pause(0.01); % Brief pause for smooth animation
                 end
 
-                % Drop the pancake at the drop-off location (stop following the end effector)
+                % Drop the pancake at the drop-off location
                 finalDropPos = [dropOffPos(1), dropOffPos(2), dropOffPos(3) - 0.05]; % Slightly lower Z to place on surface
                 newVertices = rotatedVertices + finalDropPos;
-                set(h(i), 'Vertices', newVertices);
+                set(h(currentPancake), 'Vertices', newVertices);
 
-                % Mark that the pancake is no longer being carried
+                % Mark that the pancake is no longer being carried and remove the handle
                 isCarrying = false;
+                pickedCount = pickedCount + 1; % Increment picked count
+                h(currentPancake) = gobjects(1); % Clear the handle for this pancake
+                
+                % Allow the next pancake to start moving
+                if currentPancake < numPancakes
+                    currentPancake = currentPancake + 1; % Move to the next pancake
+                end
             end
         end
 
-        % Stop the timer when all pancakes are moved off the screen
-        if all(xPositions >= stopPosition) && ~isCarrying
+        % Stop the timer when all pancakes are picked up
+        if pickedCount >= numPancakes
             stop(moveTimer);
             delete(moveTimer);
         end
