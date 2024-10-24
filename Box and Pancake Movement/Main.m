@@ -1,4 +1,4 @@
-clear all;
+clear gloabl;
 clf;
 clc;
 
