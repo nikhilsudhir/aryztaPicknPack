@@ -104,7 +104,7 @@ function movePancakesPly(robot)
                 end
 
                 % Drop the pancake at the drop-off location
-                finalDropPos = [dropOffPos(1), dropOffPos(2), dropOffPos(3) - 0.05]; % Slightly lower Z to place on surface
+                finalDropPos = [dropOffPos(1), dropOffPos(2), dropOffPos(3) - 0.3]; % Slightly lower Z to place on surface
                 newVertices = rotatedVertices + finalDropPos;
                 set(h(currentPancake), 'Vertices', newVertices);
 
