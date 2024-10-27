@@ -1,15 +1,16 @@
 function PlotEnvironment()
     %% Load Images
     groundImage = 'concrete.jpg';
-    wallImage1 = 'FactoryWall.jpg'; 
-    wallImage2 = 'MetalWall.jpg'; 
+    wallImage1 = 'FactoryWall.png'; 
+    wallImage2 = 'ExitWall.png'; 
 
     % Load sign images
     safetySign = 'Saftey.jpg'; 
     robotOperationSign = 'RobotOperation.jpg';
     emergencyStopSign = 'EmergencyStop.jpg';
     cautionRoboticSign = 'CautionRobotic.jpg';
-    emergencyExitDoor = 'EmergencyExit.jpg';
+    eyeProtectionSign = 'EyeProtection.png';
+    hairContainedSign = 'HairContained.png';
 
     %% Create the figure window
 
@@ -35,24 +36,20 @@ function PlotEnvironment()
     xlim([xmin, xmax]);
     ylim([ymin, ymax]);
     zlim([zmin, zmax]);
-
-    %camproj('perspective');  
-    % campos([0, -3, 1.5]);  
-    % camtarget([0, 0, 1]);  
-    %camva(6);  
+    
     camlight('headlight');  
     lighting phong;
 
     %% Create the ground plane
-    [xGround, yGround] = meshgrid(xmin:0.1:4, xmin:0.1:4); 
+    [xGround, yGround] = meshgrid(-10:0.1:4, -10:0.1:4); 
     zGround = zeros(size(xGround));
 
     %% Create the first wall plane along the y-axis
-    [xWall1, zWall1] = meshgrid(xmin:0.1:4, 0:0.1:3);
+    [xWall1, zWall1] = meshgrid(-10:0.1:4.2, 0:0.1:4);
     yWall1 = 4 * ones(size(xWall1));
 
     %% Create the second wall plane along the x-axis
-    [yWall2, zWall2] = meshgrid(ymin:0.1:4, 0:0.1:4);
+    [yWall2, zWall2] = meshgrid(-8:0.1:4, 0:0.1:4);
     xWall2 = 4 * ones(size(yWall2));
 
     %% Plot the ground and walls using the helper function
@@ -66,7 +63,7 @@ function PlotEnvironment()
     placeAndTransformObject('tableBrown2.1x1.4x0.5m.ply', [2.4, 3, 0], [0.8, 0.3, 1.6], 90, [0.4, 0.4, 0.4]);
 
     % Plot the fire extinguisher
-    placeAndTransformObject('fireExtinguisher.ply', [3.5, 3.5, 0.01], [1, 1, 1], 0);
+    placeAndTransformObject('fireExtinguisher.ply', [2.4, 1.9, 0.01], [1, 1, 1], 0);
 
     % Plot the person
     placeAndTransformObject('personMaleCasual.ply', [3.4, 3, 0.01], [0.8, 0.8, 0.8], 180);
@@ -85,7 +82,7 @@ function PlotEnvironment()
     placeAndTransformObject('PlasticStripDoor.ply', [2.2, 1.8, 0.01], [0.01, 0.01, 0.01], 270, [0.5, 0.5, 0.5]); %Wall with Door
 
     % Plot the box closer
-    placeAndTransformObject('AutoBoxCloser.ply', [-2, -0.3, 0.6], [1, 1, 1], 90, [0.6, 0.6, 0.6]);
+    placeAndTransformObject('AutoBoxCloser.ply', [-2, -0.325, 0.6], [1, 1, 1], 90, [0.6, 0.6, 0.6]);
 
     % Plot the boxes
     placeAndTransformObject('BoxOpen.ply', [-6,0.09,0], [1, 1, 1], 90, [0.851, 0.722, 0.545]);
@@ -96,20 +93,52 @@ function PlotEnvironment()
     placeAndTransformObject('Pallet.ply', [2.3,-0.7,0.15], [1.2, 1.2, 1.2], 90, [0.851, 0.722, 0.545]);
     placeAndTransformObject('Pallet.ply', [2.3,-0.7,0.3], [1.2, 1.2, 1.2], 0, [0.851, 0.722, 0.545]);
 
+    %Plot the forklift
+    placeAndTransformObject('Forklift.ply', [2.3,-2.7,0], [1, 1, 1], 0);
+
     %% Define sign positions and sizes
     signWidth = 0.8;  
-    signHeight = 0.8;  
-    signLift = 0.8;  % Amount to lift the signs above the ground
+    signHeight = 0.6;  
+    signLift1 = 0.8;  % Amount to lift the signs above the ground for row 1
+    signLift2 = 1.5;  % Amount to lift the signs above the ground for row 2
     
-    % Define 4 corners for the sign
-    
-    corner1 = [-4.5, 4, signLift + signHeight];       % Top-left corner
-    corner2 = [-4.5 + signWidth, 4, signLift + signHeight];  % Top-right corner
-    corner3 = [-4.5, 4, signLift];                    % Bottom-left corner
-    corner4 = [-4.5 + signWidth, 4, signLift];        % Bottom-right corner
-    
+    %Saftey Sign
+    safetySignX = -3;
+    safetySignY = 4;
+
+    %RobotOperation
+    robotOperationSignX = -4.3;
+    robotOperationSignY = 4;
+
+    %RobotOperation
+    emergencyStopSignX = -3;
+    emergencyStopSignY = 4;
+
+    %RobotOperation
+    cautionRoboticSignX = -4.3;
+    cautionRoboticSignY = 4;
+
+    %EyeProtection
+    EyeProtectionSignX = 2.75;
+    EyeProtectionSignY = 4;
+
+    %HairContained
+    HairContainedSignX = 2.75;
+    HairContainedSignY = 4;
+
+
     % Plot the sign with the texture
-    plotImageOnSurface(corner1, corner2, corner3, corner4, 'Saftey.jpg');
+    plotImageOnSurface([safetySignX, safetySignY, signLift1 + signHeight], [safetySignX + signWidth, safetySignY, signLift1 + signHeight], [safetySignX, safetySignY, signLift1], [safetySignX + signWidth, safetySignY, signLift1], safetySign);
+    
+    plotImageOnSurface([robotOperationSignX, robotOperationSignY, signLift1 + signHeight], [robotOperationSignX + signWidth, robotOperationSignY, signLift1 + signHeight], [robotOperationSignX, robotOperationSignY, signLift1], [robotOperationSignX + signWidth, robotOperationSignY, signLift1], robotOperationSign);
+
+    plotImageOnSurface([emergencyStopSignX, emergencyStopSignY, signLift2 + signHeight], [emergencyStopSignX + signWidth, emergencyStopSignY, signLift2 + signHeight], [emergencyStopSignX, emergencyStopSignY, signLift2], [emergencyStopSignX + signWidth, emergencyStopSignY, signLift2], emergencyStopSign);
+
+    plotImageOnSurface([cautionRoboticSignX, cautionRoboticSignY, signLift2 + signHeight], [cautionRoboticSignX + signWidth, cautionRoboticSignY, signLift2 + signHeight], [cautionRoboticSignX, cautionRoboticSignY, signLift2], [cautionRoboticSignX + signWidth, cautionRoboticSignY, signLift2], cautionRoboticSign);
+
+    plotImageOnSurface([EyeProtectionSignX, EyeProtectionSignY, signLift1 + signHeight], [EyeProtectionSignX + 0.5, EyeProtectionSignY, signLift1 + signHeight], [EyeProtectionSignX, EyeProtectionSignY, signLift1], [EyeProtectionSignX + 0.5, EyeProtectionSignY, signLift1], eyeProtectionSign);
+
+    plotImageOnSurface([HairContainedSignX, HairContainedSignY, signLift2 + signHeight], [HairContainedSignX + 0.5, HairContainedSignY, signLift2 + signHeight], [HairContainedSignX, HairContainedSignY, signLift2], [HairContainedSignX + 0.5, HairContainedSignY, signLift2], hairContainedSign);
 
     hold off;
 end
