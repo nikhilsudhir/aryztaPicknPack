@@ -1,7 +1,7 @@
 function PlotEnvironment()
     %% Load Images
     groundImage = 'concrete.jpg';
-    wallImage1 = 'MetalWall.jpg'; 
+    wallImage1 = 'FactoryWall.jpg'; 
     wallImage2 = 'MetalWall.jpg'; 
 
     % Load sign images
@@ -12,7 +12,7 @@ function PlotEnvironment()
     emergencyExitDoor = 'EmergencyExit.jpg';
 
     %% Create the figure window
-    figure;
+
     hold on;
     %% Sets axis properties
     axis equal;
@@ -36,10 +36,10 @@ function PlotEnvironment()
     ylim([ymin, ymax]);
     zlim([zmin, zmax]);
 
-    camproj('perspective');  
-    campos([0, -3, 1.5]);  
-    camtarget([0, 0, 1]);  
-    camva(6);  
+    %camproj('perspective');  
+    % campos([0, -3, 1.5]);  
+    % camtarget([0, 0, 1]);  
+    %camva(6);  
     camlight('headlight');  
     lighting phong;
 
@@ -48,7 +48,7 @@ function PlotEnvironment()
     zGround = zeros(size(xGround));
 
     %% Create the first wall plane along the y-axis
-    [xWall1, zWall1] = meshgrid(xmin:0.1:4, 0:0.1:4);
+    [xWall1, zWall1] = meshgrid(xmin:0.1:4, 0:0.1:3);
     yWall1 = 4 * ones(size(xWall1));
 
     %% Create the second wall plane along the x-axis
@@ -75,20 +75,26 @@ function PlotEnvironment()
     placeAndTransformObject('emergencyStopButton.ply', [2.5, 3, 0.8], [0.5, 0.5, 0.5], 0);
 
     % Plot the boxes conveyor
-    placeAndTransformObject('ConveyerBeltBoxes.ply', [1, 1.5, 0], [1, 1, 1], -90);
+    placeAndTransformObject('ConveyerBeltBoxes.ply', [0, 1.69, 0], [1, 1, 1], -90);
 
     % Plot the pancake conveyor
-    placeAndTransformObject('ConveyerBeltPancake.ply', [-3, 3, 0], [1, 1, 1], -90);
+    placeAndTransformObject('ConveyerBeltPancake.ply', [-3, 2.79, 0], [1, 1, 1], -90);
 
     % Plot the barriers
     placeAndTransformObject('SafetyWall.ply', [4, 0.6, 0.01], [0.01, 0.01, 0.01], 0, [0.5, 0.5, 0.5]); %Wall without Door
     placeAndTransformObject('PlasticStripDoor.ply', [2.2, 1.8, 0.01], [0.01, 0.01, 0.01], 270, [0.5, 0.5, 0.5]); %Wall with Door
 
     % Plot the box closer
-    placeAndTransformObject('AutoBoxCloser.ply', [-2, -0.525, 0.6], [1, 1, 1], 90, [0.6, 0.6, 0.6]);
+    placeAndTransformObject('AutoBoxCloser.ply', [-2, -0.3, 0.6], [1, 1, 1], 90, [0.6, 0.6, 0.6]);
 
-    placeAndTransformObject('Pancake.ply', [0, -0.525, 0.6], [1, 1, 1], 90, [0.6, 0.6, 0.6]);
+    % Plot the boxes
+    placeAndTransformObject('BoxOpen.ply', [-6,0.09,0], [1, 1, 1], 90, [0.851, 0.722, 0.545]);
+    placeAndTransformObject('BoxOpen.ply', [-4,0.09,0], [1, 1, 1], 90, [0.851, 0.722, 0.545]);
 
+    %Plot the pallet
+    placeAndTransformObject('Pallet.ply', [2.3,-0.7,0], [1.2, 1.2, 1.2], 0, [0.851, 0.722, 0.545]);
+    placeAndTransformObject('Pallet.ply', [2.3,-0.7,0.15], [1.2, 1.2, 1.2], 90, [0.851, 0.722, 0.545]);
+    placeAndTransformObject('Pallet.ply', [2.3,-0.7,0.3], [1.2, 1.2, 1.2], 0, [0.851, 0.722, 0.545]);
 
     %% Define sign positions and sizes
     signWidth = 0.8;  
