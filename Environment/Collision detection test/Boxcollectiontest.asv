@@ -1,0 +1,135 @@
+function Boxcollectiontest(robot2, startPos, EndPos, BoxCollected, PlaceX, PlaceY, PlaceZ)
+    % Initialize x positions for each box (starting off-screen to the left)
+    xPositions = linspace(EndPos, startPos, 1);
+
+    y = 0.05; % Fixed y position for all boxes
+    z = 0.95; % Base z position to lift boxes off the floor
+
+    % Load the box model
+    [boxFaceData, boxVertexData, ~] = plyread('BoxClosed.ply', 'tri');
+
+    % Scaling and rotation parameters
+    scaleFactor = 1;
+    rotationMatrixZ = [cosd(90), -sind(90), 0; sind(90), cosd(90), 0; 0, 0, 1];
+    rotationMatrixX = [1, 0, 0; 0, cosd(90), -sind(90); 0, sind(90), cosd(90)];
+
+    % Store handles for the boxes
+    h = gobjects(1);
+
+    % Scale and rotate the box vertices initially
+    scaledVertices = boxVertexData * scaleFactor;
+    rotatedVertices = (rotationMatrixZ * rotationMatrixX * scaledVertices')';
+
+    % Define the collision detection planes
+    detectionPlaneZ = 0.65; % Z plane
+    detectionPlaneX = 1.21;   % X plane
+    detectionPlaneY = 0.44; % Y plane
+
+    % Plot the boxes initially at their starting positions
+    for i = 1
+        boxVertices = rotatedVertices + [xPositions(i), y, z];
+        h(i) = trisurf(boxFaceData, boxVertices(:, 1), boxVertices(:, 2), boxVertices(:, 3), ...
+                       'FaceColor', '#D9B98B', 'EdgeColor', 'none');
+    end
+
+    % Movement parameters
+    xMove = 0.01;
+    frameRate = 30;
+    timePerFrame = 1 / frameRate;
+
+    % Define the timer object
+    moveTimer = timer('ExecutionMode', 'fixedRate', 'Period', timePerFrame, 'TimerFcn', @moveBoxes);
+
+    % Count of picked boxes
+    pickedCount = 0;
+    isCarrying = false; % Flag to indicate if the robot is carrying a box
+    currentBox = 1; % Track the current box being processed
+
+    % Start the timer
+    start(moveTimer);
+
+    function moveBoxes(~, ~)
+        % Move boxes
+        for i = 1
+            % Move the box along the conveyor if it has not been picked up
+            if ~isCarrying && ishandle(h(i))
+                if xPositions(i) < BoxCollected
+                    xPositions(i) = min(xPositions(i) + xMove, BoxCollected);
+                    newVertices = rotatedVertices + [xPositions(i), y, z];
+                    set(h(i), 'Vertices', newVertices);
+
+                    % Check for collision with the detection planes
+                    if any(newVertices(:, 3) <= detectionPlaneZ)
+                        disp('Collision detected with the Z plane! Moving robot to avoid.');
+                        % Move robot to avoid the Z plane
+                        robot2.model.animate(robot2.model.getpos() - [0, 0, 0.1]); % Simple evasive maneuver
+                    elseif any(newVertices(:, 1) <= detectionPlaneX)
+                        disp('Collision detected with the X plane! Reversing X movement.');
+                        xMove = -xMove; % Reverse X direction
+                    elseif any(newVertices(:, 2) >= detectionPlaneY)
+                        disp('Collision detected with the Y plane! Avoiding by moving away.');
+                        robot2.model.animate(robot2.model.getpos() + [0, -0.1, 0]); % Move away in Y
+                    end
+                end
+            end
+
+            % Check for pickup if the robot is not currently carrying a box
+            if ~isCarrying && xPositions(i) >= BoxCollected && ishandle(h(i))
+                % Move robot end effector to box top position (above the box)
+                targetPos = [xPositions(i), y, z];
+                qTraj = generateTrajectory(robot2, targetPos, robot2.model.getpos());
+
+                % Animate the robot moving above the box position
+                for q = qTraj'
+                    robot2.model.animate(q');
+                    pause(0.01);
+                end
+
+                % Mark that the robot is now carrying the box
+                isCarrying = true;
+                currentBox = i; % Keep track of the box being picked
+            end
+
+            % If the robot is carrying a box, move to the drop-off location
+            if isCarrying && ishandle(h(currentBox))
+                % Get the current pose of the end effector
+                qNow = robot2.model.getpos();
+                endEffectorPose = robot2.model.fkineUTS(qNow);
+                boxPosition = endEffectorPose(1:3, 4)';
+
+                % Update the vertices of the box relative to the end effector
+                newVertices = rotatedVertices + boxPosition;
+                set(h(currentBox), 'Vertices', newVertices);
+
+                % Move the robot to the drop-off location
+                dropOffPos = [PlaceX, PlaceY, PlaceZ];
+                qTraj = generateTrajectory(robot2, dropOffPos, robot2.model.getpos());
+
+                % Animate the robot moving to the drop-off position
+                for q = qTraj'
+                    robot2.model.animate(q');
+                    endEffectorPose = robot2.model.fkineUTS(q');
+                    boxPosition = endEffectorPose(1:3, 4)';
+                    newVertices = rotatedVertices + boxPosition;
+                    set(h(currentBox), 'Vertices', newVertices);
+                    pause(0.01);
+                end
+
+                % Release the box at the drop-off location without deleting it
+                set(h(currentBox), 'Vertices', newVertices);
+
+                % Mark that the box is no longer being carried
+                isCarrying = false;
+                pickedCount = pickedCount + 1;
+            end
+        end
+
+        % Stop the timer when all boxes are picked up
+        if pickedCount >= 1
+            stop(moveTimer);
+            delete(moveTimer);
+        end
+
+        drawnow;
+    end
+end
